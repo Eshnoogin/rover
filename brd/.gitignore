@@ -1,0 +1,4 @@
+*.gbr
+rover-backups/
+fp-info-cache
+fp-lib-table
