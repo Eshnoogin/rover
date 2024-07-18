@@ -81,15 +81,18 @@ esp_err_t motor_move_at(motor_handle_t *handle, float duty_percent)
     if (duty_percent <= 0)
     {
         // in1 goes to duty cycle and in2 goes low
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(LEDC_LOW_SPEED_MODE, handle->in_1, calcuated_duty, 0)); // thread-safe version, just in case
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(LEDC_LOW_SPEED_MODE, handle->in_2, 0, 0));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, handle->in_1, calcuated_duty));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, handle->in_2, 0));
     }
     else
     {
         // in2 goes to duty cycle and in1 goes low
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(LEDC_LOW_SPEED_MODE, handle->in_2, calcuated_duty, 0));
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(LEDC_LOW_SPEED_MODE, handle->in_1, 0, 0));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, handle->in_2, calcuated_duty));
+        ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, handle->in_1, 0));
     }
+
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, handle->in_1);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, handle->in_2);
 
     // update state
     handle->is_moving = true;

@@ -1,4 +1,6 @@
 *.gbr
+*.drl
+*gbrjob
 rover-backups/
 fp-info-cache
 fp-lib-table

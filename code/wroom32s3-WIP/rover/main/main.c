@@ -16,7 +16,6 @@
 #include "common.h"
 #include "motor.h"
 #include "comm.h"
-#include "cam.h"
 
 #define TAG "RVR"
 
@@ -28,9 +27,10 @@
 #define M2_IN2 46
 #define M2_FAULT 47
 
-#define M3_IN1 41
-#define M3_IN2 40
+#define M3_IN1 40
+#define M3_IN2 41
 #define M3_FAULT 42
+
 
 i2c_master_bus_handle_t i2c_mst_bus_handle;
 
@@ -121,43 +121,14 @@ void handle_movement()
 
 void app_main(void)
 {
-    // setup i2c for gyroscope and camera
-    i2c_master_bus_config_t i2c_mst_config = {
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .i2c_port = -1,
-        .scl_io_num = 8,
-        .sda_io_num = 9,
-        .glitch_ignore_cnt = 7,
-    };
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &i2c_mst_bus_handle));
+    // Setup GPIO 17 as output
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_DISABLE;   // Disable interrupt
+    io_conf.mode = GPIO_MODE_OUTPUT;         // Set as output mode
+    io_conf.pin_bit_mask = (1ULL << M1_IN1) | (1ULL << M1_IN2) | (1ULL << M2_IN1) | (1ULL << M2_IN2) | (1ULL << M3_IN1) | (1ULL << M3_IN2);     // Bit mask of the pins to set
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;                // Disable pull-down mode
+    io_conf.pull_up_en = 0;                  // Disable pull-up mode
+    gpio_config(&io_conf);
 
-    // init imu
-    z_rot_mutex = xSemaphoreCreateMutex();
-    TaskHandle_t handle_imu_handler;
-    imu_init(&imu);
-    xTaskCreate(handle_imu, "handle_imu", 4096, NULL, 1, &handle_imu_handler);
-
-    // configure timer, shared across all pwms
-    ledc_fade_func_install(0);
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .timer_num = LEDC_TIMER_0,
-        .duty_resolution = LEDC_TIMER_8_BIT,
-        .freq_hz = 50,
-        .clk_cfg = LEDC_AUTO_CLK};
-    ledc_timer_config(&ledc_timer);
-
-    // init motors
-    motor_init(&motor1, M1_IN1, M1_IN2, LEDC_CHANNEL_0, LEDC_CHANNEL_1, &ledc_timer);
-    motor_init(&motor2, M2_IN1, M2_IN2, LEDC_CHANNEL_2, LEDC_CHANNEL_3, &ledc_timer);
-    motor_init(&motor3, M3_IN1, M3_IN2, LEDC_CHANNEL_4, LEDC_CHANNEL_5, &ledc_timer);
-
-    // setup esp-now
-    espnow_init();
-
-    // init movement
-    // TaskHandle_t handle_movement_handler;
-    // xTaskCreate(handle_movement, "handle_movement", 2048, NULL, 1, &handle_movement_handler);
-
-    init_cam();
+    gpio_set_level(M1_IN1, 1);
 }

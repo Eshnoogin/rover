@@ -9,6 +9,7 @@
 #include "driver/mcpwm_gen.h"
 #include "driver/mcpwm_cmpr.h"
 #include "esp_timer.h"
+#include "driver/spi_master.h"
 
 #include "driver/gpio.h"
 
@@ -16,6 +17,7 @@
 #include "common.h"
 #include "motor.h"
 #include "comm.h"
+#include "cam.h"
 
 #define TAG "RVR"
 
@@ -129,7 +131,7 @@ void app_main(void)
     z_rot_mutex = xSemaphoreCreateMutex();
     TaskHandle_t handle_imu_handler;
     imu_init(&imu);
-    xTaskCreate(handle_imu, "handle_imu", 2048, NULL, 1, &handle_imu_handler);
+    xTaskCreate(handle_imu, "handle_imu", 4096, NULL, 1, &handle_imu_handler);
 
     // configure timer, shared across all pwms
     ledc_fade_func_install(0);
@@ -152,4 +154,36 @@ void app_main(void)
     // init movement
     TaskHandle_t handle_movement_handler;
     xTaskCreate(handle_movement, "handle_movement", 2048, NULL, 1, &handle_movement_handler);
+
+    ESP_LOGI(TAG, "startSTART");
+    for(int i=0; i<=255; i++){
+        ESP_LOGI(TAG, "probing 0x%.2x", i);
+        if(i2c_master_probe(i2c_mst_bus_handle, i, 100) == ESP_OK){
+            ESP_LOGW(TAG, "DEV FOUND AT 0x%.2x", i);
+        }
+    }
+
+    //init SPI bus
+    spi_bus_config_t spi_bus_config = {
+        .data0_io_num=-1,
+        .data1_io_num=-1,
+        .data2_io_num=-1,
+        .data3_io_num=-1,
+        .data4_io_num=-1,
+        .data5_io_num=-1,
+        .data6_io_num=-1,
+        .data7_io_num=-1,
+        .miso_io_num=19,
+        .mosi_io_num=23,
+        .quadhd_io_num=-1,
+        .quadwp_io_num=-1,
+        .sclk_io_num=18
+    };
+
+    spi_bus_initialize(SPI2_HOST, &spi_bus_config, SPI_DMA_CH_AUTO);
+
+    //init arducam
+    cam_handle_t cam_handle;
+    cam_init(&cam_handle);
+
 }

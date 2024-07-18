@@ -15,7 +15,12 @@ const uint8_t PWR_MGMT_1 =  0x6B;
 void imu_init(imu_handle_t *imu){
     //make sure imu is connected
     ESP_ERROR_CHECK(i2c_master_probe(i2c_mst_bus_handle, ADDR, 1000));
-
+    for(int i=0; i <= 255; i++){
+        ESP_LOGI(TAG, "PROBING AT %.2x", i);
+        if(i2c_master_probe(i2c_mst_bus_handle, i, 10) == ESP_OK){
+            ESP_LOGW(TAG, "FOUND I2C AT %.2x", i);
+        }
+    }
     //register it with i2c bus
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,

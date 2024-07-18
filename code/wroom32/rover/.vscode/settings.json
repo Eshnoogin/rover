@@ -27,9 +27,19 @@
         "mcpwm_timer.h": "c",
         "motor.h": "c",
         "cstdint": "c",
-        "netfwd": "c"
+        "netfwd": "c",
+        "compare": "cpp",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "span": "c",
+        "bitset": "c",
+        "regex": "c",
+        "string.h": "c",
+        "esp_log.h": "c",
+        "gpio.h": "c"
     },
-    "idf.portWin": "COM6",
+    "idf.portWin": "COM12",
     "cSpell.words": [
         "mcpwm"
     ],

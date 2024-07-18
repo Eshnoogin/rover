@@ -1,5 +1,7 @@
 #ifndef IMU_H
 #define IMU_H
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 typedef struct
 {
